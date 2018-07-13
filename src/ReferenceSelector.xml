@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget id="com.mendix.widget.custom.referenceselector.ReferenceSelector" needsEntityContext="true" offlineCapable="true" xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mendix.com/widget/1.0/ ../../../../../xsd/widget.xsd">
+    <name>ReferenceSelector</name>
+    <description>Allows users to take and save pictures on their mendix desktop applications</description>
+    <icon>iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QAAKqNIzIAAAAJcEhZcwAADdcAAA3XAUIom3gAAAAHdElNRQfhCgwJFhuIhoIqAAABhUlEQVRIx+3UP2sUURQF8N9kXVgLG5EQUxjShZDCKSRgwE+wyhb5BEkXkm3sxDKN1YKdlWAjdkFMb2WCSwgZ0TJlAlqJsNGw2bHRdf68iQPbifc2dw7nnvPmvjvD/4gy9Q1PNOx5hlXtEvfMlmERvJKpr7qt4TNanroZsHvveb1zbUmDeZwzHL9CxwOzOfSO6xXS+76O6xOv7bBZ4VYvNzmcSOAwMsrdRDbOvdKXmBG7bxF88Ng9D8ecVKX2gSXM6VjW0rRtKLWGyJcMr7K9acH+r6eBrsi61I5r2jlmsP2HJQsGOayHXanzAjco8IKx++8cWRGXuVPB8fXNWS5tzKrEoEgNCyTiABq7kNQTmHEaQE8pbGylQOzIWQndM+1WmRwa4kdN3QL2SctGgFuxB9siPaNM+6J53+oLDK1jRc9bL3W1zDsIMi/5UHbFGmDaRtA9lUZSl8VAYjY0uj/rcVFxE/ViNKU/QTv9hu86lX+Ev/p7FOGudnnDasSJN95NdP5/JH4CyctNHfjcPXwAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTctMTAtMTJUMDk6MjI6MjcrMDI6MDCMRiaFAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE3LTEwLTEyVDA5OjIyOjI3KzAyOjAw/RueOQAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAAASUVORK5CYII=</icon>
+    <properties>
+        <property key="attribute" type="attribute" isPath="yes" pathType="reference" >
+            <caption>Attribute (path)</caption>
+            <category>Data source</category>
+            <description/>
+            <attributeTypes>
+                <attributeType name="String"/>
+            </attributeTypes>
+        </property>
+        <property key="inputSelector" type="enumeration" defaultValue="page">
+            <caption>Selecting using</caption>
+            <category>Appearance</category>
+            <description/>
+            <enumerationValues>
+                <enumerationValue key="page">Page</enumerationValue>
+                <enumerationValue key="dropdown">Drop down</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="goToPage" type="form" required="false" >
+            <caption>Select page</caption>
+            <category>Appearance</category>
+            <description>Page to navigate to select items</description>
+        </property>
+        <property key="emptyOptionCaption" type="string" required="false" >
+            <caption>Caption</caption>
+            <category>Appearance</category>
+            <description>Text displayed before selection</description>
+        </property>
+        <property key="source" type="enumeration" defaultValue="xpath">
+            <caption>Source</caption>
+            <category>Selectable objects</category>
+            <description/>
+            <enumerationValues>
+                <enumerationValue key="xpath">Xpath</enumerationValue>
+                <enumerationValue key="microflow">Microflow</enumerationValue>
+                <enumerationValue key="nanoflow">Nanoflow</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="dataEntity" type="entity" allowNonPersistableEntities="true">
+            <caption>Entity</caption>
+            <category>Selectable objects</category>
+            <description>The entity from which selectable values will be retrieved</description>
+        </property>
+        <property  key="selectableAttribute" type="attribute" entityProperty="dataEntity">
+            <caption>Attribute</caption>
+            <category>Selectable objects</category>
+            <description>The attribute from which selectable values will be retrieved</description>
+            <attributeTypes>
+                <attributeType name="String"/>
+            </attributeTypes>
+        </property>
+        <property  key="entityConstraint" type="entityConstraint" entityProperty="dataEntity" required="false" >
+            <caption>Xpath constraint</caption>
+            <category>Selectable objects</category>
+            <description/>
+        </property>
+        <property key="sortOrder" type="enumeration" defaultValue="asc">
+            <caption>Sort order</caption>
+            <category>Selectable objects</category>
+            <description/>
+            <enumerationValues>
+                <enumerationValue key="asc">Ascending</enumerationValue>
+                <enumerationValue key="desc">Descending</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="microflow" type="microflow" required="false">
+            <caption>Microflow</caption>
+            <category>Selectable objects</category>
+            <description>Returns a list of data values</description>
+            <returnType type="Object" entityProperty="dataEntity" isList="true"/>
+        </property>
+        <property key="nanoflow" type="nanoflow" required="false">
+            <caption>Nanoflow</caption>
+            <category>Selectable objects</category>
+            <description>Returns a list of data values</description>
+            <returnType type="Object" entityProperty="dataEntity" isList="true"/>
+        </property>
+    </properties>
+</widget>
