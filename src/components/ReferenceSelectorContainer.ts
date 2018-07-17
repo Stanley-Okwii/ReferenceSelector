@@ -1,11 +1,12 @@
 import { Component, createElement } from "react";
 import { parseStyle } from "../utils/ContainerUtils";
-import { FetchDataOptions, fetchData } from "../utils/data";
-import { ReferenceSelector, referenceOptions } from "./ReferenceSelector";
+import { FetchDataOptions, FetchedData, fetchData } from "../utils/data";
+import { ReferenceSelector, referenceOption } from "./ReferenceSelector";
 
 interface WrapperProps {
     mxObject: mendix.lib.MxObject;
     mxform: mxui.lib.form._FormBase;
+    mxContext: mendix.lib.MxContext;
     style?: string;
     class?: string;
 }
@@ -21,14 +22,16 @@ export interface ReferenceSelectorContainerProps extends WrapperProps {
     dataEntity: string;
     microflow: string;
     nanoflow: Nanoflow;
-    SelectableAttribute: string;
+    selectableAttribute: string;
+    labelCaption: string;
+    showLabel: string;
 }
 
 export interface ReferenceSelectorState {
-    options: referenceOptions;
-    selectedOption: {value: string, id: string} | {};
-    selected: string;
+    options: referenceOption[];
+    selected: referenceOption;
     mxobject: mendix.lib.MxMetaObject | {};
+    index: number;
 }
 
 export interface Nanoflow {
@@ -36,44 +39,99 @@ export interface Nanoflow {
     paramsSpec: { Progress: string };
 }
 
-// tslint:disable-next-line:interface-over-type-literal
-export type referenceOption = {value: string, id: string} | {};
-
 export default class ReferenceSelectorContainer extends Component<ReferenceSelectorContainerProps, ReferenceSelectorState> {
     private subscriptionHandles: number[] = [];
-    private attribute?: string;
 
     constructor(props: ReferenceSelectorContainerProps) {
         super(props);
 
         this.state = {
+            index: 0,
             mxobject: {},
             options: [],
-            selected: "",
-            selectedOption: ""
+            selected: { value: "select" , label: this.props.emptyOptionCaption }
         };
 
         // readonly state: TranscriptState = { value: Value.create() };
-        const t = this.props.attribute.split("/");
-        // this._opts = [];
-        this.attribute = t[2];
         this.onChange = this.onChange.bind(this);
     }
 
     render() {
         return createElement(ReferenceSelector as any, {
-            attribute: this.props.attribute,
+            attribute: this.props.selectableAttribute,
             data: this.state.options,
             handleOnchange: this.onChange,
+            label: this.props.labelCaption,
+            selectedValue: this.state.selected,
+            showLabel: this.props.showLabel,
             style: parseStyle(this.props.style)
         });
     }
 
     componentWillReceiveProps(newProps: ReferenceSelectorContainerProps) {
+        if (newProps.mxObject !== this.props.mxObject) {
+        this.retrieveOptions(newProps);
         this.resetSubscriptions(newProps.mxObject);
-        // this.setState(this.getValue(newProps.mxObject)));
-        const guid = newProps.mxObject.getGuid();
-        const { dataEntity, entityConstraint, source, sortOrder, microflow , nanoflow } = newProps;
+        }
+    }
+
+    componentWillUnmount() {
+        this.subscriptionHandles.forEach(window.mx.data.unsubscribe);
+    }
+
+    private setOptions = (item: Promise<FetchedData>) => {
+        const dataOptions: referenceOption[] = [];
+
+        Promise.all([ item ])
+        .then((values) => {
+            const mx = values[0].mxObjects;
+            if (this.props.selectableAttribute && mx) {
+                for (const mxOject of mx) {
+                    dataOptions.push({ label: mxOject.get(this.props.selectableAttribute) as string, value: mxOject.getGuid() });
+                }
+            }
+            this.setState({ options: dataOptions });
+        });
+    }
+
+    private handleSubscriptions = () => {
+        this.setState({ selected: this.getValue(this.props.mxObject) });
+    }
+
+    private getValue(mxObject: mendix.lib.MxObject) {
+        return {
+            label: mxObject.get(this.props.selectableAttribute) as string,
+            value: mxObject.getGuid()
+        };
+    }
+
+    private resetSubscriptions(mxObject?: mendix.lib.MxObject) {
+        this.subscriptionHandles.forEach(window.mx.data.unsubscribe);
+        this.subscriptionHandles = [];
+
+        if (mxObject) {
+            this.subscriptionHandles.push(window.mx.data.subscribe({
+                attr: this.props.selectableAttribute,
+                callback: this.handleSubscriptions,
+                guid: mxObject.getGuid()
+            }));
+            this.subscriptionHandles.push(window.mx.data.subscribe({
+                callback: this.handleSubscriptions,
+                guid: mxObject.getGuid()
+            }));
+        }
+    }
+
+    private onChange = (newValue: referenceOption) => {
+        if (!this.props.mxObject) {
+            return;
+        }
+        this.props.mxObject.set(this.props.selectableAttribute, newValue.label);
+    }
+
+    private retrieveOptions(props: ReferenceSelectorContainerProps) {
+        const guid = props.mxObject.getGuid();
+        const { dataEntity, entityConstraint, source, sortOrder, microflow , nanoflow } = props;
         const options = {
             constraint: entityConstraint,
             entity: dataEntity,
@@ -84,77 +142,6 @@ export default class ReferenceSelectorContainer extends Component<ReferenceSelec
             sortOrder,
             type: source
         };
-        this.applyOptions(fetchData(options as FetchDataOptions));
-    }
-
-    componentDidMount() {
-        // tslint:disable-next-line:no-console
-        console.log(this.props.SelectableAttribute);
-    }
-
-    componentWillUnmount() {
-        this.subscriptionHandles.forEach(window.mx.data.unsubscribe);
-    }
-
-    private applyOptions = (item: any) => {
-        const values: referenceOptions = [];
-        const noCaption: { value: string, id: string } = { value: this.props.emptyOptionCaption, id: "1" };
-
-        Promise.all([ item ]).then((value: Array<{mxObjects: mendix.lib.MxObject[]}>) => {
-            const mx = value[0].mxObjects;
-            if (this.attribute) {
-                for (const i of mx) {
-                    values.push({ value: i.get(this.attribute) as string, id: i.getGuid() });
-                }
-                values.unshift(noCaption);
-            }
-            this.setState({ options: values });
-        });
-    }
-
-    private handleSubscriptions = () => {
-        this.setState({ selectedOption: this.getValue(this.props.mxObject) });
-    }
-
-    private getValue = (mxObject?: mendix.lib.MxObject): referenceOption => {
-        return mxObject ? { value: mxObject.get(this.props.attribute) as string, id: mxObject.getGuid() } : {};
-    }
-
-    private resetSubscriptions(mxObject?: mendix.lib.MxObject) {
-        this.subscriptionHandles.forEach(window.mx.data.unsubscribe);
-        this.subscriptionHandles = [];
-
-        if (mxObject) {
-            this.subscriptionHandles.push(window.mx.data.subscribe({
-                attr: this.props.attribute,
-                callback: this.handleSubscriptions,
-                guid: mxObject.getGuid()
-            }));
-            this.subscriptionHandles.push(window.mx.data.subscribe({
-                callback: this.handleSubscriptions,
-                guid: mxObject.getGuid()
-            }));
-        }
-    }
-
-    private onChange(event: React.ChangeEvent<HTMLInputElement>) {
-        const selectedOption = event.target.value;
-        const index = (event.target as any).options.selectedIndex;
-        // tslint:disable-next-line:no-console
-        // this.setState({ selected: selectedOption });
-        // tslint:disable-next-line:no-console
-        this.state.options.filter(item => item !== this.state.options[index]);
-        this.state.options.unshift(this.state.options[index]);
-        // tslint:disable-next-line:no-console
-        console.log(this.state.options);
-        this.updateAttribute(selectedOption, this.props.mxObject);
-    }
-
-    private updateAttribute = (value: string, mxObject?: mendix.lib.MxObject) => {
-        if (mxObject) {
-            mxObject.set(this.props.SelectableAttribute, value);
-            const context = new mendix.lib.MxContext();
-            context.setContext(mxObject.getEntity(), mxObject.getGuid());
-        }
+        this.setOptions(fetchData(options as FetchDataOptions));
     }
 }

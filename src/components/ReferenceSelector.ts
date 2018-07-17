@@ -1,4 +1,5 @@
 import { Component, createElement } from "react";
+import Select from "react-select";
 // import "../ui/ReferenceSelector.scss";
 
 export interface ReferenceSelectorProps {
@@ -6,11 +7,14 @@ export interface ReferenceSelectorProps {
     readOnly: boolean;
     data: any;
     value: string;
-    handleOnchange: () => void;
+    label: string;
+    showLabel: "yes" | "no";
+    selectedValue: referenceOption;
+    handleOnchange: (selectedOption: any) => void;
     id?: string;
 }
-
-export type referenceOptions = Array<{value: string, id: string}>;
+// tslint:disable-next-line:interface-over-type-literal
+export type referenceOption = { value: string, label: string };
 
 export class ReferenceSelector extends Component<ReferenceSelectorProps> {
     private selectNode?: HTMLElement;
@@ -21,24 +25,22 @@ export class ReferenceSelector extends Component<ReferenceSelectorProps> {
         this.setRef = this.setRef.bind(this);
     }
 
-    componentWillMount() {
-        //
-    }
-
     render() {
-        return createElement("div", { className: "mx-referenceselector-input-wrapper" },
-            createElement("select", {
-                className: "form-control",
+        return createElement("div", { className: "reference-wrapper" },
+            this.showLabel(),
+            createElement(Select, {
                 onChange: this.props.handleOnchange,
-                ref: this.setRef
-            },
-                this.createList(this.props.data)));
+                options: this.props.data,
+                ref: "list",
+                value: this.props.selectedValue
+            })
+        );
     }
 
-    private createList(dropdownOptions: referenceOptions) {
-        return dropdownOptions.map(dropOption =>
-           createElement("option", { value: dropOption.id }, dropOption.value)
-        );
+    private showLabel() {
+        return this.props.showLabel ?
+            createElement("label", { className: "control-label" }, this.props.label) :
+            null;
     }
 
     public setRef(node: HTMLElement) {

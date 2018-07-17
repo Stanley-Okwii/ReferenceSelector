@@ -31,6 +31,20 @@
             <category>Appearance</category>
             <description>Text displayed before selection</description>
         </property>
+        <property key="showLabel" type="enumeration" defaultValue="yes">
+            <caption>Show caption</caption>
+            <category>Appearance</category>
+            <description/>
+            <enumerationValues>
+                <enumerationValue key="yes">Yes</enumerationValue>
+                <enumerationValue key="no">No</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="labelCaption" type="string" required="false" >
+            <caption>Label caption</caption>
+            <category>Appearance</category>
+            <description/>
+        </property>
         <property key="source" type="enumeration" defaultValue="xpath">
             <caption>Source</caption>
             <category>Selectable objects</category>
