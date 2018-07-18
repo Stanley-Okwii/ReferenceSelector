@@ -12,7 +12,7 @@
                 <attributeType name="String"/>
             </attributeTypes>
         </property>
-        <property key="inputSelector" type="enumeration" defaultValue="page">
+        <property key="selectorType" type="enumeration" defaultValue="page">
             <caption>Selecting using</caption>
             <category>Appearance</category>
             <description/>

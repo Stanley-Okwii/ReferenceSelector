@@ -3,7 +3,7 @@ type MxObject = mendix.lib.MxObject;
 type SortOrder = "asc" | "desc";
 
 export interface FetchDataOptions {
-    type: "xpath" | "microflow" | "nanoflow";
+    source: "xpath" | "microflow" | "nanoflow";
     entity: string;
     guid: string;
     constraint?: string;
@@ -73,7 +73,7 @@ export const fetchData = (options: FetchDataOptions): Promise<FetchedData> =>
     new Promise<FetchedData>((resolve, reject) => {
         const { guid, entity, sortAttribute, sortOrder } = options;
         if (entity && guid) {
-            if (options.type === "xpath") {
+            if (options.source === "xpath") {
                 const references = getReferences(options.attributes || []);
                 fetchByXPath({
                     attributes: references.attributes,
@@ -86,11 +86,11 @@ export const fetchData = (options: FetchDataOptions): Promise<FetchedData> =>
                 })
                     .then(mxObjects => resolve({ mxObjects }))
                     .catch(message => reject({ message }));
-            } else if (options.type === "microflow" && options.microflow) {
+            } else if (options.source === "microflow" && options.microflow) {
                 fetchByMicroflow(options.microflow, guid)
                     .then(mxObjects => resolve({ mxObjects }))
                     .catch(message => reject({ message }));
-            } else if (options.type === "nanoflow" && options.nanoflow && options.mxform) {// nanflow
+            } else if (options.source === "nanoflow" && options.nanoflow && options.mxform) {// nanflow
                 fetchByNanoflow(options.nanoflow, options.mxform)
                     .then(mxObjects => resolve({ mxObjects }))
                     .catch(message => reject({ message }));

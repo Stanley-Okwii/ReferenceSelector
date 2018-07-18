@@ -10,11 +10,15 @@ export interface ReferenceSelectorProps {
     label: string;
     showLabel: "yes" | "no";
     selectedValue: referenceOption;
+    selectorType: selector;
     handleOnchange: (selectedOption: any) => void;
+    handleClick: () => void;
     id?: string;
 }
 // tslint:disable-next-line:interface-over-type-literal
 export type referenceOption = { value: string, label: string };
+
+export type selector = "page" | "dropdown";
 
 export class ReferenceSelector extends Component<ReferenceSelectorProps> {
     private selectNode?: HTMLElement;
@@ -28,12 +32,7 @@ export class ReferenceSelector extends Component<ReferenceSelectorProps> {
     render() {
         return createElement("div", { className: "reference-wrapper" },
             this.showLabel(),
-            createElement(Select, {
-                onChange: this.props.handleOnchange,
-                options: this.props.data,
-                ref: "list",
-                value: this.props.selectedValue
-            })
+            this.createSelector()
         );
     }
 
@@ -41,6 +40,38 @@ export class ReferenceSelector extends Component<ReferenceSelectorProps> {
         return this.props.showLabel ?
             createElement("label", { className: "control-label" }, this.props.label) :
             null;
+    }
+
+    private createSelector() {
+        if (this.props.selectorType === "dropdown") {
+            return createElement(Select, {
+                onChange: this.props.handleOnchange,
+                options: this.props.data,
+                ref: "list",
+                value: this.props.selectedValue
+            });
+        } else if (this.props.selectorType === "page") {
+            return createElement("div", {
+                className: "mx-referenceselector",
+                focusindex: "0"
+            },
+                createElement("button", {
+                    className: "btn mx-button mx-referenceselector-select-button",
+                    onClick: this.props.handleClick,
+                    type: "button"
+                },
+                    createElement("span", {
+                        className: "glyphicon glyphicon-share-alt"
+                    })
+                ), createElement("div", { className: "mx-referenceselector-input-wrapper" },
+                    createElement("input", {
+                        className: "form-control",
+                        readonly: "readonly",
+                        type: "text",
+                        value: this.props.selectedValue.label
+                    })
+            ));
+        }
     }
 
     public setRef(node: HTMLElement) {

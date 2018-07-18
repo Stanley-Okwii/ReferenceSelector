@@ -1,7 +1,7 @@
 import { Component, createElement } from "react";
 import { parseStyle } from "../utils/ContainerUtils";
 import { FetchDataOptions, FetchedData, fetchData } from "../utils/data";
-import { ReferenceSelector, referenceOption } from "./ReferenceSelector";
+import { ReferenceSelector, referenceOption, selector } from "./ReferenceSelector";
 
 interface WrapperProps {
     mxObject: mendix.lib.MxObject;
@@ -14,7 +14,7 @@ interface WrapperProps {
 export interface ReferenceSelectorContainerProps extends WrapperProps {
     emptyOptionCaption: string;
     attribute: string;
-    inputSelector: string;
+    selectorType: selector;
     goToPage: string;
     source: "xpath"| "microflow" | "nanoflow";
     entityConstraint: string;
@@ -60,9 +60,11 @@ export default class ReferenceSelectorContainer extends Component<ReferenceSelec
         return createElement(ReferenceSelector as any, {
             attribute: this.props.selectableAttribute,
             data: this.state.options,
+            handleClick: this.onClick,
             handleOnchange: this.onChange,
             label: this.props.labelCaption,
             selectedValue: this.state.selected,
+            selectorType: this.props.selectorType,
             showLabel: this.props.showLabel,
             style: parseStyle(this.props.style)
         });
@@ -86,8 +88,13 @@ export default class ReferenceSelectorContainer extends Component<ReferenceSelec
         .then((values) => {
             const mx = values[0].mxObjects;
             if (this.props.selectableAttribute && mx) {
-                for (const mxOject of mx) {
-                    dataOptions.push({ label: mxOject.get(this.props.selectableAttribute) as string, value: mxOject.getGuid() });
+                for (const mxObject of mx) {
+                    dataOptions.push({ label: mxObject.get(this.props.selectableAttribute) as string, value: mxObject.getGuid() });
+                    this.subscriptionHandles.push(window.mx.data.subscribe({
+                        attr: this.props.selectableAttribute,
+                        callback: this.handleSubscriptions,
+                        guid: mxObject.getGuid()
+                    }));
                 }
             }
             this.setState({ options: dataOptions });
@@ -95,6 +102,8 @@ export default class ReferenceSelectorContainer extends Component<ReferenceSelec
     }
 
     private handleSubscriptions = () => {
+        // tslint:disable-next-line:no-console
+        console.log(this.props.mxObject);
         this.setState({ selected: this.getValue(this.props.mxObject) });
     }
 
@@ -129,19 +138,43 @@ export default class ReferenceSelectorContainer extends Component<ReferenceSelec
         this.props.mxObject.set(this.props.selectableAttribute, newValue.label);
     }
 
+    private onClick = () => {
+        window.mx.ui.openForm(this.props.goToPage, {
+            callback: (form: mxui.lib.form._FormBase) => {
+                // tslint:disable-next-line:no-console
+                // console.log(form);
+                form.listen("submit", () => {
+                    // tslint:disable-next-line:no-console
+                    // (put) => console.log(put);
+                    // tslint:disable-next-line:no-console
+                    // console.log("something was submited" + (form as any)._context);
+                    this.handleSubscriptions();
+                    form.close();
+                });
+            },
+            error: (error: Error) => window.mx.ui.error(`Error while opening page ${this.props.goToPage}: ${error.message}`),
+            location: "popup"
+        });
+    }
+
     private retrieveOptions(props: ReferenceSelectorContainerProps) {
-        const guid = props.mxObject.getGuid();
-        const { dataEntity, entityConstraint, source, sortOrder, microflow , nanoflow } = props;
+        const { dataEntity, entityConstraint, source, sortOrder, microflow, mxObject, nanoflow } = props;
         const options = {
             constraint: entityConstraint,
             entity: dataEntity,
-            guid,
+            guid: mxObject.getGuid(),
             microflow,
             mxform: this.props.mxform,
             nanoflow,
             sortOrder,
-            type: source
+            source
         };
-        this.setOptions(fetchData(options as FetchDataOptions));
+        if (this.props.selectorType === "dropdown") {
+            this.setOptions(fetchData(options as FetchDataOptions));
+        } else if (this.props.selectorType === "page") {
+            this.setOptions(fetchData(options as FetchDataOptions));
+        } else {
+            //
+        }
     }
 }
