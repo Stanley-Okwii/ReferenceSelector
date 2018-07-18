@@ -1,6 +1,6 @@
 import { Component, createElement } from "react";
 import Select from "react-select";
-// import "../ui/ReferenceSelector.scss";
+import "../ui/ReferenceSelector.scss";
 
 export interface ReferenceSelectorProps {
     style?: object;
@@ -21,16 +21,10 @@ export type referenceOption = { value: string, label: string };
 export type selector = "page" | "dropdown";
 
 export class ReferenceSelector extends Component<ReferenceSelectorProps> {
-    private selectNode?: HTMLElement;
-
-    constructor(props: ReferenceSelectorProps) {
-        super(props);
-
-        this.setRef = this.setRef.bind(this);
-    }
+    // private selectNode?: HTMLElement;
 
     render() {
-        return createElement("div", { className: "reference-wrapper" },
+        return createElement("div", { className: "widget-reference-selector-wrapper" },
             this.showLabel(),
             this.createSelector()
         );
@@ -38,20 +32,22 @@ export class ReferenceSelector extends Component<ReferenceSelectorProps> {
 
     private showLabel() {
         return this.props.showLabel ?
-            createElement("label", { className: "control-label" }, this.props.label) :
+        createElement("div", { className: "div-wrapper" },
+        createElement("label", { className: "control-label" }, this.props.label)) :
             null;
     }
 
     private createSelector() {
         if (this.props.selectorType === "dropdown") {
-            return createElement(Select, {
+            return createElement("div", { className: "div-wrapper" }, createElement(Select, {
                 onChange: this.props.handleOnchange,
                 options: this.props.data,
                 ref: "list",
                 value: this.props.selectedValue
-            });
+            }));
         } else if (this.props.selectorType === "page") {
-            return createElement("div", {
+            return createElement("div", { className: "div-wrapper" },
+             createElement("div", {
                 className: "mx-referenceselector",
                 focusindex: "0"
             },
@@ -70,13 +66,7 @@ export class ReferenceSelector extends Component<ReferenceSelectorProps> {
                         type: "text",
                         value: this.props.selectedValue.label
                     })
-            ));
-        }
-    }
-
-    public setRef(node: HTMLElement) {
-        if (this.selectNode) {
-            this.selectNode = node;
+            )));
         }
     }
 }

@@ -102,8 +102,6 @@ export default class ReferenceSelectorContainer extends Component<ReferenceSelec
     }
 
     private handleSubscriptions = () => {
-        // tslint:disable-next-line:no-console
-        console.log(this.props.mxObject);
         this.setState({ selected: this.getValue(this.props.mxObject) });
     }
 
@@ -141,14 +139,9 @@ export default class ReferenceSelectorContainer extends Component<ReferenceSelec
     private onClick = () => {
         window.mx.ui.openForm(this.props.goToPage, {
             callback: (form: mxui.lib.form._FormBase) => {
-                // tslint:disable-next-line:no-console
-                // console.log(form);
-                form.listen("submit", () => {
-                    // tslint:disable-next-line:no-console
-                    // (put) => console.log(put);
-                    // tslint:disable-next-line:no-console
-                    // console.log("something was submited" + (form as any)._context);
-                    this.handleSubscriptions();
+            form.listen("submit", () => {
+                    const label = (form.domNode.getElementsByClassName("selected")[0].lastChild as any).title;
+                    this.props.mxObject.set(this.props.selectableAttribute, label);
                     form.close();
                 });
             },
@@ -169,12 +162,6 @@ export default class ReferenceSelectorContainer extends Component<ReferenceSelec
             sortOrder,
             source
         };
-        if (this.props.selectorType === "dropdown") {
-            this.setOptions(fetchData(options as FetchDataOptions));
-        } else if (this.props.selectorType === "page") {
-            this.setOptions(fetchData(options as FetchDataOptions));
-        } else {
-            //
-        }
+        this.setOptions(fetchData(options as FetchDataOptions));
     }
 }
